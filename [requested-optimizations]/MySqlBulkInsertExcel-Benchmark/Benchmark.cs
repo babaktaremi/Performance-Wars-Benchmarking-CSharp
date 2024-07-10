@@ -14,7 +14,7 @@ public class Benchmark()
 {
     private static readonly IServiceProvider serviceProvider;
     private static readonly EfDbContext dbContext;
-    private const string connection = "Server=localhost;Port=8085;Database=ExcelPerformance;User=root;Password=123;AllowLoadLocalInfile=true; MinimumPoolSize=32;";
+    private const string connection = "Server=localhost;Port=3306;Database=ExcelPerformance;User=root;Password=1234;AllowLoadLocalInfile=true; MinimumPoolSize=32;";
 
     static Benchmark()
     {
@@ -73,5 +73,9 @@ public class Benchmark()
     [Benchmark]
     public Task MySQLBulkLoaderMultiThreaded2x() => ExcelProcessor.RunMySQLBulkLoaderMultiThreaded2xAsync(GetStream(), "tag-name", dbContext);
 
+    
+    [Benchmark]
+    public Task MySQLBulkLoaderParallel() => ExcelProcessor.RunMySQLBulkLoaderParallel(GetStream(), "tag-name", dbContext);
+    
     private Stream GetStream() => File.OpenRead(Path.Combine(AppContext.BaseDirectory, "Csv", "Book1.csv"));
 }

@@ -52,6 +52,8 @@ public static class DisableChecksHelper
         await connection.ExecuteNonQueryAsync(_disableChecksQuery);
         return new DisableChecksScope(connection);
     }
+    
+    
 
     public class DisableChecksScope : IDisposable, IAsyncDisposable
     {

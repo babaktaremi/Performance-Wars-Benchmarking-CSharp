@@ -8,7 +8,8 @@ namespace MySqlBulkInsertExcel_Benchmark;
 
 public static class Utils
 {
-    public static async Task<byte[]> ReadAllBytesAsync(this Stream stream, CancellationToken cancellationToken = default)
+    public static async Task<byte[]> ReadAllBytesAsync(this Stream stream,
+        CancellationToken cancellationToken = default)
     {
         var bytes = new byte[stream.Length - stream.Position];
         await stream.ReadAsync((Memory<byte>)bytes, cancellationToken);
@@ -120,6 +121,7 @@ public static class Utils
                 tempList.Add(utf8Bytes[i]);
             }
         }
+
         return records;
     }
 
@@ -167,7 +169,8 @@ public static class Utils
         return await command.ExecuteNonQueryAsync();
     }
 
-    public static async Task<int> ExecuteNonQueryAsync(this MySql.Data.MySqlClient.MySqlConnection connection, string sql)
+    public static async Task<int> ExecuteNonQueryAsync(this MySql.Data.MySqlClient.MySqlConnection connection,
+        string sql)
     {
         if (connection.State == ConnectionState.Closed)
             await connection.OpenAsync();
@@ -177,7 +180,8 @@ public static class Utils
         return await command.ExecuteNonQueryAsync();
     }
 
-    public static ValueTask<MySqlBulkCopyResult> BulkInsertAsync(this MySqlConnection connection, DbDataReader reader, string tableName, Dictionary<int, string> mappings)
+    public static ValueTask<MySqlBulkCopyResult> BulkInsertAsync(this MySqlConnection connection, DbDataReader reader,
+        string tableName, Dictionary<int, string> mappings)
     {
         var bulkCopy = new MySqlBulkCopy(connection)
         {
@@ -193,7 +197,8 @@ public static class Utils
         return bulkCopy.WriteToServerAsync(reader);
     }
 
-    public static Task BulkInsertAsync(this MySqlConnection connection, Stream sourceStream, string tableName, string[] columns, string[] expressions)
+    public static Task BulkInsertAsync(this MySqlConnection connection, Stream sourceStream, string tableName,
+        string[] columns, string[] expressions)
     {
         var bulkLoader = new MySqlBulkLoader(connection)
         {
@@ -216,7 +221,8 @@ public static class Utils
         return bulkLoader.LoadAsync();
     }
 
-    public static Task BulkInsertAsync(this MySql.Data.MySqlClient.MySqlConnection connection, Stream sourceStream, string tableName, string[] columns, string[] expressions)
+    public static Task BulkInsertAsync(this MySql.Data.MySqlClient.MySqlConnection connection, Stream sourceStream,
+        string tableName, string[] columns, string[] expressions)
     {
         var bulkLoader = new MySql.Data.MySqlClient.MySqlBulkLoader(connection)
         {
@@ -236,6 +242,29 @@ public static class Utils
         }
 
         return bulkLoader.LoadAsync(sourceStream);
+    }
+
+    public static void BulkInsert(this MySql.Data.MySqlClient.MySqlConnection connection, Stream sourceStream,
+        string tableName, string[] columns, string[] expressions)
+    {
+        var bulkLoader = new MySql.Data.MySqlClient.MySqlBulkLoader(connection)
+        {
+            ConflictOption = MySql.Data.MySqlClient.MySqlBulkLoaderConflictOption.Ignore,
+            TableName = tableName,
+            LineTerminator = "\r\n"
+        };
+
+        foreach (var column in columns)
+        {
+            bulkLoader.Columns.Add(column);
+        }
+
+        foreach (var expression in expressions)
+        {
+            bulkLoader.Expressions.Add(expression);
+        }
+
+        bulkLoader.Load(sourceStream);
     }
 
     public static MySqlConnection CreateNewConnection(this DatabaseFacade database)

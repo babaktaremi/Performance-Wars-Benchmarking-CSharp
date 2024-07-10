@@ -3,7 +3,7 @@ using MySqlBulkInsertExcel_Benchmark;
 
 var summary = BenchmarkAutoRunner.Run<Benchmark>();
 await summary.SaveAsImageAsync(
-    path: DirectoryHelper.GetPathRelativeToProjectDirectory("Benchmark.png"),
+    path: DirectoryHelper.GetPathRelativeToProjectDirectory("Benchmark2.png"),
     options: new ReportHtmlOptions
     {
         Title = "MySQL Bulk Insert Benchmark",

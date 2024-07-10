@@ -324,4 +324,52 @@ public static class ExcelProcessor
             throw new Exception($"Excel operation failed: {ex.Message}", ex);
         }
     }
+    
+    
+    public static async Task RunMySQLBulkLoaderParallel(Stream stream, string excelTagName, EfDbContext dbContext)
+    {
+        try
+        {
+            var streamChunks = await stream.ChunkAsync(100_000);
+            var streamChunks2 = await stream.ChunkAsync(100_000);
+
+            var options = new ParallelOptions()
+            {
+                MaxDegreeOfParallelism = Environment.ProcessorCount,
+                CancellationToken = CancellationToken.None,
+                TaskScheduler = TaskScheduler.Current
+            };
+
+            var t1 = Task.Run(() =>
+            {
+                Parallel.ForEach(streamChunks, options, (memoryStream) =>
+                {
+                    using var connection = dbContext.Database.CreateNewMySqlDataConnection();
+                    using var _ = connection.DisableChecks();
+                    connection.BulkInsert(memoryStream, "users", ["id"], ["created_at = NOW(6)"]);
+
+                });
+            });
+
+            var t2 = Task.Run(() =>
+            {
+                Parallel.ForEach(streamChunks2, options, (memoryStream) =>
+                {
+                    using var connection = dbContext.Database.CreateNewMySqlDataConnection();
+                    using var _ = connection.DisableChecks();
+                    connection.BulkInsert(memoryStream, "tags", ["user_id"], [$"name = '{excelTagName}'"]);
+
+                });
+            });
+
+            await Task.WhenAll(t1, t2);
+
+
+
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Excel operation failed: {ex.Message}", ex);
+        }
+    }
 }
